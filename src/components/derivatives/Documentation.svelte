@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { githubLink } from '../const.ts';
+  import { githubLink } from '../../const.ts';
 	import { mathjax } from 'mathjax-full/js/mathjax';
 	import { TeX } from 'mathjax-full/js/input/tex';
 	import { SVG } from 'mathjax-full/js/output/svg';
@@ -75,11 +75,7 @@
   //   operator: "^",
   // };
 
-  let depth = 1;
-  let chain_rule = true;
-  let product_rule = true;
-  let power_rule = true;
-  function generate_formula(depth, mayplusminus, maycontainsimplex, mayproduct, maysqrt) {
+  function generate_formula(depth, maycontainsimplex, last_operator) {
     if (depth == 0) {
       if (maycontainsimplex) {
         return "x";
@@ -90,51 +86,55 @@
     let r = Math.random();
     // let operators = ["*", "-", "+", "ln", "sqrt", "^"];
     let operators = [];
-    if (mayproduct) {
+    if (last_operator != "*") {
       operators.push("*");
     }
-    if (mayplusminus) {
+    if (last_operator != "-" && last_operator != "+") {
       operators.push("-");
       operators.push("+");
     }
-    if (chain_rule) {
-      operators.push("ln")
-      if (maysqrt) {
+    if (settings.chain_rule) {
+      if (settings.use_ln) {
+        operators.push("ln")
+      }
+      if (last_operator != "sqrt" && settings.use_sqrt) {
         operators.push("sqrt")
       }
       operators.push("^2")
     }
-    if (power_rule) {
-      operators.push("^1")
+    if (settings.power_rule) {
+      if (last_operator != "^1") {
+        operators.push("^1")
+      }
     }
     let idx = Math.floor(r * operators.length);
     if (operators[idx] == "-" || operators[idx] == "+") {
       let ldepth = Math.floor(Math.random() * (depth-1));
       let rdepth = depth - ldepth - 1;
       return {
-        left: generate_formula(ldepth, false, true, true, true),
-        right: generate_formula(rdepth, false, (depth > 1), true, true),
+        left: generate_formula(ldepth, true, operators[idx]),
+        right: generate_formula(rdepth, (depth > 1), operators[idx]),
         operator: operators[idx],
       }
     } else if (operators[idx] == "*") {
       let ldepth = Math.floor(Math.random() * (depth-1));
       let rdepth = depth - ldepth - 1;
-      if (product_rule) {
+      if (settings.product_rule || ldepth == 0) {
         return {
-          left: generate_formula(ldepth, true, false, true, true),
-          right: generate_formula(rdepth, true, true, true, true),
+          left: generate_formula(ldepth, false, operators[idx]),
+          right: generate_formula(rdepth, true, operators[idx]),
           operator: operators[idx],
         }
       } else {
         return {
           left: String(Math.floor(Math.random()*9) + 2),
-          right: generate_formula(depth-1, true, true, false, true),
+          right: generate_formula(depth-1, true, operators[idx]),
           operator: operators[idx],
         }
       }
     } else if (operators[idx] == "ln" || operators[idx] == "sqrt") {
       return {
-        inner: generate_formula(depth-1, true, true, true, false),
+        inner: generate_formula(depth-1, true, operators[idx]),
         operator: operators[idx],
       }
     } else if (operators[idx] == "^2") {
@@ -143,16 +143,16 @@
         b = "e";
       }
       return {
-        inner: generate_formula(depth-1, true, true, true, true),
+        inner: generate_formula(depth-1, true, operators[idx]),
         base: b,
         operator: "^",
       }
     } else if (operators[idx] == "^1") {
       // Power rule
-      if (chain_rule) {
+      if (settings.chain_rule) {
         return {
           inner: String(Math.floor(Math.random()*9) + 2),
-          base: generate_formula(depth-1, true, true, true, true),
+          base: generate_formula(depth-1, true, operators[idx]),
           operator: "^",
         }
       } else {
@@ -163,7 +163,7 @@
         }
       }
     }
-    console.log(depth, operators[idx]);
+    // console.log(depth, operators[idx]);
   }
   // const formula = {
   //   inner: "10",
@@ -424,44 +424,45 @@
       let res = [{descr: start, folds: []}];
       let start1 = (language === "NED") ? "Buitenste deel" : "Outer part";
       let start2 = (language === "NED") ? "Binnenste deel" : "Inner part";
+      console.log("show", settings.show_derivative);
       if (formula.operator == '^' && add_containsx(formula.base) != true) {
         let cl = { base: formula.base, inner: "x", operator: '^' };
         res.push({
-            descr: start1 + getMathjaxSVG(("b_1(x) = " + make_tex(formula.base) + "^x").replace(/x/gi, "X")) + getMathjaxSVG(("b_1'(x) = " + add_derivative(cl)).replace(/x/gi, "X")),
+            descr: start1 + getMathjaxSVG(("b_1(x) = " + make_tex(formula.base) + "^x").replace(/x/gi, "X")) + ((settings.show_derivative) ? getMathjaxSVG(("b_1'(x) = " + add_derivative(cl)).replace(/x/gi, "X")) : ""),
             folds: [],
           });
         res.push({
-            descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.inner)) + getMathjaxSVG("b_2'(x) = " + add_derivative(formula.inner)),
+            descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.inner)) + ((settings.show_derivative) ? getMathjaxSVG("b_2'(x) = " + add_derivative(formula.inner)) : ""),
             folds: convert_to_tree(formula.inner),
           });
       } else if (formula.operator == '^' && add_containsx(formula.base) == true) {
         let cl = { inner: formula.inner, base: "x", operator: '^' };
         res.push({
-            descr: start1 + getMathjaxSVG(("b_1(x) = x^{" + make_tex(formula.inner) + "}").replace(/x/gi, "X")) + getMathjaxSVG(("b_1'(x) = " + add_derivative(cl)).replace(/x/gi, "X")),
+            descr: start1 + getMathjaxSVG(("b_1(x) = x^{" + make_tex(formula.inner) + "}").replace(/x/gi, "X")) + ((settings.show_derivative) ? getMathjaxSVG(("b_1'(x) = " + add_derivative(cl)).replace(/x/gi, "X")) : ""),
             folds: convert_to_tree(cl),
           });
         res.push({
-            descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.base)) + getMathjaxSVG("b_2'(x) = " + add_derivative(formula.base)),
+            descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.base)) + ((settings.show_derivative) ? getMathjaxSVG("b_2'(x) = " + add_derivative(formula.base)) : ""),
             folds: convert_to_tree(formula.inner),
           });
       } else if (formula.operator == 'sqrt') {
         let cl = { inner: "x", operator: 'sqrt' };
         res.push({
-            descr: start1 + getMathjaxSVG("b_1(x) = " + make_tex(cl)) + getMathjaxSVG("b_1'(x) = " + add_derivative(cl)),
+            descr: start1 + getMathjaxSVG("b_1(x) = " + make_tex(cl)) + ((settings.show_derivative) ? getMathjaxSVG("b_1'(x) = " + add_derivative(cl)) : ""),
             folds: [],
           });
         res.push({
-            descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.inner)) + getMathjaxSVG("b_2'(x) = " + add_derivative(formula.inner)),
+            descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.inner)) + ((settings.show_derivative) ? getMathjaxSVG("b_2'(x) = " + add_derivative(formula.inner)) : ""),
             folds: convert_to_tree(formula.inner),
           });
       } else if (formula.operator == 'ln') {
         let cl = { inner: "x", operator: 'ln' };
         res.push({
-            descr: start1 + getMathjaxSVG("b_1(x) = " + make_tex(cl)) + getMathjaxSVG("b_1'(x) = " + add_derivative(cl)),
+            descr: start1 + getMathjaxSVG("b_1(x) = " + make_tex(cl)) + ((settings.show_derivative) ? getMathjaxSVG("b_1'(x) = " + add_derivative(cl)) : ""),
             folds: [],
           });
         res.push({
-            descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.inner)) + getMathjaxSVG("b_2'(x) = " + add_derivative(formula.inner)),
+            descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.inner)) + ((settings.show_derivative) ? getMathjaxSVG("b_2'(x) = " + add_derivative(formula.inner)) : ""),
             folds: convert_to_tree(formula.inner),
           });
       }
@@ -474,10 +475,10 @@
           descr: start,
           folds: [],
         }, {
-          descr: start1 + getMathjaxSVG("l(x) = " + convert_to_tex(formula.left)) + getMathjaxSVG("l'(x) = " + add_derivative(formula.left)),
+          descr: start1 + getMathjaxSVG("l(x) = " + convert_to_tex(formula.left)) + ((settings.show_derivative) ? getMathjaxSVG("l'(x) = " + add_derivative(formula.left)) : ""),
           folds: convert_to_tree(formula.left),
         }, {
-          descr: start2 + getMathjaxSVG("r(x) = " + convert_to_tex(formula.right)) + getMathjaxSVG("r'(x) = " + add_derivative(formula.right)),
+          descr: start2 + getMathjaxSVG("r(x) = " + convert_to_tex(formula.right)) + ((settings.show_derivative) ? getMathjaxSVG("r'(x) = " + add_derivative(formula.right)) : ""),
           folds: convert_to_tree(formula.right),
         }]
     } else if (formula.rule == "Product rule") {
@@ -488,23 +489,23 @@
           descr: start,
           folds: [],
         }, {
-          descr: start1 + getMathjaxSVG("l(x) = " + convert_to_tex(formula.left)) + getMathjaxSVG("l'(x) = " + add_derivative(formula.left)),
+          descr: start1 + getMathjaxSVG("l(x) = " + convert_to_tex(formula.left)) + ((settings.show_derivative) ? getMathjaxSVG("l'(x) = " + add_derivative(formula.left)) : ""),
           folds: convert_to_tree(formula.left),
         }, {
-          descr: start2 + getMathjaxSVG("r(x) = " + convert_to_tex(formula.right)) + getMathjaxSVG("r'(x) = " + add_derivative(formula.right)),
+          descr: start2 + getMathjaxSVG("r(x) = " + convert_to_tex(formula.right)) + ((settings.show_derivative) ? getMathjaxSVG("r'(x) = " + add_derivative(formula.right)) : ""),
           folds: convert_to_tree(formula.right),
         }]
     } else if (formula.rule == "Constant times rule") {
       if (add_containsx(formula.left) == false) {
         let start = (language === "NED") ? "Zonder de keer " + formula.left : "Without the times " + formula.left;
         return [{
-            descr: start + getMathjaxSVG("f(x) = " + convert_to_tex(formula.right)) + getMathjaxSVG("f'(x) = " + add_derivative(formula.right)),
+            descr: start + getMathjaxSVG("f(x) = " + convert_to_tex(formula.right)) + ((settings.show_derivative) ? getMathjaxSVG("f'(x) = " + add_derivative(formula.right)) : ""),
             folds: convert_to_tree(formula.right),
           }]
       } else if (add_containsx(formula.right) == false) {
         let start = (language === "NED") ? "Zonder de keer " + formula.right : "Without the times " + formula.right;
         return [{
-            descr: start + getMathjaxSVG("f(x) = " + convert_to_tex(formula.left)) + getMathjaxSVG("f'(x) = " + add_derivative(formula.left)),
+            descr: start + getMathjaxSVG("f(x) = " + convert_to_tex(formula.left)) + ((settings.show_derivative) ? getMathjaxSVG("f'(x) = " + add_derivative(formula.left)) : ""),
             folds: convert_to_tree(formula.left),
           }]
       }
@@ -512,20 +513,20 @@
       let start = (language === "NED") ? "Machtregel (macht = " + formula.inner + ")" : "Power Rule (power = " + formula.inner + ")";
       return [{
           descr: start,
-          folds: [],
+          folds: convert_to_tree(formula.base),
         }]
     }
     return []
   }
   function convert_tree_to_html(tree, d) {
 		// return `<div> ` + getMathjaxSVG(tex) + ` WAT </div>`
-    let x = 10*d + 10;
-		let s = `<div class="collapse collapse-arrow bg-gray-400 bg-opacity-` + x + ` border-base-900 border">
+    // console.log(String(opac));
+		let s = `<div class="collapse collapse-arrow bg-gray-400 bg-opacity-15 border-base-900 border">
         <input type="checkbox" class="peer" />
-        <div class="collapse-title font-bold peer-checked:bg-zinc-300">` + tree.descr + `</div>`
-		// let s = `<div class="collapse-open bg-gray-400 bg-opacity-` + x + ` border-base-300 border">
+        <div class="collapse-title font-bold peer-checked:bg-zinc-900 peer-checked:bg-opacity-30">` + tree.descr + `</div>`
+		// let s = `<div class="collapse-open bg-gray-400 bg-opacity-` + opac + ` border-base-300 border">
         // <div class="collapse-title font-bold peer-checked:bg-green-100">` + tree.descr + `</div>`
-    s += `<div class="collapse-content bg-gray-400 bg-opacity-` + 10*d + `">`;
+    s += `<div class="collapse-content bg-gray-400 bg-opacity-15">`;
     // s += tree.descr;
     for (const f of tree.folds) {
       if (f.folds.length > 0) {
@@ -544,17 +545,27 @@
     add_derivative(formula);
     let start = (language === "NED") ? "Functie" : "Function";
     let tree = {
-      descr: start + getMathjaxSVG(String.raw`f(x) = ` + convert_to_tex(formula)) + getMathjaxSVG(String.raw`f'(x) = ` + add_derivative(formula)),
+      descr: start + getMathjaxSVG(String.raw`f(x) = ` + convert_to_tex(formula)) + ((settings.show_derivative) ? getMathjaxSVG("f'(x) = " + add_derivative(formula)) : ""),
       folds: convert_to_tree(formula),
     }
     return convert_tree_to_html(tree, 1);
   }
 
-  let language = "NED"
-  let other_language = "English"
-  let sp = "Oefen je afgeleides!"
-  let formula = generate_formula(depth, true, true, true, true);
-  console.log(formula);
+  let depth = 3;
+  let settings = {
+    'chain_rule': true,
+    'product_rule': true,
+    'power_rule': true,
+    'use_sqrt': true,
+    'use_ln': true,
+    'show_derivative': true,
+  };
+
+  let language = "ENG"
+  let other_language = "Dutch"
+  let sp = "Practice your derivatives!"
+  let formula = generate_formula(depth, true, "");
+  // console.log(formula);
   let folds = do_derivative(formula)
 
   function toggle_language() {
@@ -572,15 +583,29 @@
 
   function handle_depth_change(event) {
     depth = event.target.value;
-    formula = generate_formula(depth, true, true, true, true);
-    console.log(formula);
+    console.log("depth set to", depth);
+    formula = generate_formula(depth, true, "");
+    folds = do_derivative(formula);
+  }
+
+  function toggle_value(value) {
+    settings[value] = !settings[value];
+    console.log(value, "set to", settings[value])
+    if (value != "show_derivative") {
+      formula = generate_formula(depth, true, "");
+    }
+    folds = do_derivative(formula);
+  }
+
+  function generate_new() {
+    formula = generate_formula(depth, true, "");
     folds = do_derivative(formula);
   }
 </script>
 
 <header class="bg-white -mt-10 pt-0">
-  <div class="mx-auto flex h-6 pb-2 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-1 items-center justify-end md:justify-between">
+  <div class="mx-auto flex h-6 pb-2 max-w-screen-xl items-center gap-8 px-4">
+    <div class="flex flex-1 items-center justify-end justify-between">
       <div class="flex items-center gap-4">
         <button class="btn btn-soft btn-primary justify-right" on:click={() => toggle_language()}><p>Convert to {other_language}</p></button>
       </div>
@@ -607,19 +632,62 @@
 
 <h1 class="mx-auto text-4xl font-bold my-2">{sp}</h1>
 
-{@html folds}
+<div class="mx-auto w-full max-w-screen-xl">
+  <fieldset class="fieldset bg-base-100 border-base-300 rounded-box border p-4">
+    <legend class="fieldset-legend">Generate Options</legend>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 content-between">
+      <label class="label">
+        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('power_rule')} />
+        {(language == "ENG") ? "Power Rule" : "Machtregel"}
+      </label>
+      <label class="label">
+        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('chain_rule')} />
+        {(language == "ENG") ? "Chain Rule" : "Kettingregel"}
+      </label>
+      <label class="label">
+        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('product_rule')} />
+        {(language == "ENG") ? "Product Rule" : "Productregel"}
+      </label>
+      <label class="label">
+        <div class="w-full max-w-xs">
+          <input type="range" min="0" max="10" value="1" class="range" step="1" on:input={handle_depth_change}/>
+        </div>
+        {(language == "ENG") ? "Depth" : "Diepte"} = {depth}
+      </label>
+      <label class="label">
+        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('use_ln')} />
+        {(language == "ENG") ? "ln" : "ln"}
+      </label>
+      <label class="label">
+        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('use_sqrt')} />
+        {(language == "ENG") ? "sqrt" : "wortel"}
+      </label>
+      <label class="label">
+        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('show_derivative')} />
+        {(language == "ENG") ? "show derivative" : "laat afgeleide zien"}
+      </label>
+    </div>
+  </fieldset>
 
-<div class="w-full max-w-xs">
-  <input type="range" min="0" max="10" value="1" class="range" step="1" on:input={handle_depth_change}/>
+  <button class="w-full btn btn-soft btn-primary justify-right" on:click={() => generate_new()}><p>Generate</p></button>
+
+  {@html folds}
+</div>
+
+<div class="w-full max-w-screen-xl mx-auto mt-20">
+  {#if language == "ENG"}
+    <h2 class="mx-auto text-2xl font-bold my-2">Information</h2>
+    <li>Click on the function to see the last rule that was applied (recursively).</li>
+    <li>[Square brackets] are used for the chain rule (specifically, the derivative of the inner part).</li>
+    <li>{`{`}Curly brackets{`}`} are used for the product rule (specifically, the derivatives of the functions).</li>
+  {/if}
+  {#if language == "NED"}
+    <h2 class="mx-auto text-2xl font-bold my-2">Informatie</h2>
+    <li>Klik op de functie om de laatst gebruikte regel te zien (recursief).</li>
+    <li>[Vierkante haakjes] worden gebruikt voor de kettingregel (voor de afgeleide van de binnenste functie).</li>
+    <li>{`{`}Accolades{`}`} worden gebruikt voor de productregel (voor de afgeleides van de functies).</li>
+  {/if}
 </div>
 
 <style>
 </style>
-
-<h2 class="mb-4 mt-8 text-2xl font-bold">Features</h2>
-
-<ul class="list-disc pl-6">
-	<li>Convert TeX to SVG using MathJax</li>
-	<li>Support MathJax options</li>
-	<li>Support Temml options</li>
-</ul>
