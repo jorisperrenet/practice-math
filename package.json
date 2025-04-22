@@ -52,6 +52,7 @@
 		"vite": "^5.0.11"
 	},
 	"dependencies": {
+		"gh-pages": "^6.3.0",
 		"hast-util-to-html": "^9.0.5",
 		"mathjax-full": "^3.2.2"
 	},
