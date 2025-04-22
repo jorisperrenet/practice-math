@@ -603,7 +603,7 @@
   }
 </script>
 
-<header class="bg-white -mt-10 pt-0">
+<header class="-mt-10 pt-0">
   <div class="mx-auto flex h-6 pb-2 max-w-screen-xl items-center gap-8 px-4">
     <div class="flex flex-1 items-center justify-end justify-between">
       <div class="flex items-center gap-4">
