@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { githubLink } from '../const.ts';
+  const githubLink = "https://github.com/jorisperrenet/practice-math";
 </script>
 
 <footer class="mx-auto justify-items-center gap-4 p-5 pt-10">
@@ -31,7 +31,7 @@
 		</p>
 		<p>
 			Copyright (c) 2025
-			<a class="underline hover:text-gray-600" href="https://ntsd.dev">Joris Perrenet</a>
+			<a class="underline hover:text-gray-600" href="https://jorisperrenet.github.io">Joris Perrenet</a>
 		</p>
 	</div>
 </footer>

@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { githubLink } from '../../const.ts';
+  const githubLink = "https://github.com/jorisperrenet/practice-math";
+
+  import { page } from "$app/stores";
+  import { goto } from "$app/navigation";
+
 	import { mathjax } from 'mathjax-full/js/mathjax';
 	import { TeX } from 'mathjax-full/js/input/tex';
 	import { SVG } from 'mathjax-full/js/output/svg';
@@ -22,58 +26,6 @@
 		const node = mathjaxSVGDocument.convert(tex, convertOptions);
 		return adaptor.innerHTML(node);
 	}
-
-
-  // let formula = {
-  //   inner: {
-  //     left: {
-				// left: {
-					// // inner: "6",
-  //         inner: {
-  //           left: "6",
-  //           right: {
-  //             base: "x",
-  //             inner: "2",
-  //             operator: "^",
-  //           },
-  //           operator: "*",
-  //         },
-					// operator: "sqrt",
-				// },
-				// // right: {
-				// // 	left: "x",
-				// // 	right: "1",
-				// // 	operator: "-",
-				// // },
-  //       right: {
-  //         base: {
-  //           left: {
-  //             left: "2",
-  //             right: "x",
-  //             operator: "*",
-  //           },
-  //           right: "1",
-  //           operator: "-",
-  //         },
-  //         inner: "2",
-  //         operator: "^",
-  //       },
-  //       operator: "*",
-  //     },
-			// right: {
-			  // inner: "7",
-			  // operator: "ln",
-			// },
-  //     operator: "-",
-  //   },
-  //   // base: "e",
-		// base: {
-			// left: "7",
-			// right: "p",
-			// operator: "-",
-		// },
-  //   operator: "^",
-  // };
 
   function generate_formula(depth, maycontainsimplex, last_operator) {
     if (depth == 0) {
@@ -165,21 +117,13 @@
     }
     // console.log(depth, operators[idx]);
   }
-  // const formula = {
-  //   inner: "10",
-		// base: {
-			// left: "7",
-			// right: "x",
-			// operator: "-",
-		// },
-  //   operator: "^",
-  // };
+
   function convert_to_tex(formula) {
 		let s = String.raw``
 		if (typeof(formula) == 'string') {
 			return formula;
-		// } else if (formula.hasOwnProperty("tex")) {
-      // return formula.tex;
+		} else if (formula.hasOwnProperty("tex")) {
+      return formula.tex;
 		} else if (formula.hasOwnProperty("inner")) {
 			if (formula.operator == 'ln') {
 				s += String.raw`\ln \left(` + convert_to_tex(formula.inner) + String.raw`\right)`
@@ -209,6 +153,7 @@
 				throw new Error("Operation not known")
 			}
 		}
+    formula.tex = s;
 		return s;
   }
 
@@ -219,25 +164,6 @@
       return String.raw`\left(` + convert_to_tex(formula) + String.raw`\right)`
     } else {
       return convert_to_tex(formula)
-    }
-  }
-
-  function add_tex(formula) {
-    if (typeof(formula) == 'string') {
-      return
-    }
-    formula.tex = convert_to_tex(formula);
-    if (formula.hasOwnProperty("inner")) {
-      add_tex(formula.inner)
-    }
-    if (formula.hasOwnProperty("base")) {
-      add_tex(formula.base)
-    }
-    if (formula.hasOwnProperty("left")) {
-      add_tex(formula.left)
-    }
-    if (formula.hasOwnProperty("right")) {
-      add_tex(formula.right)
     }
   }
 
@@ -540,7 +466,7 @@
   }
 
   function do_derivative(formula) {
-    add_tex(formula);
+    convert_to_tex(formula);
     add_containsx(formula);
     add_derivative(formula);
     let start = (language === "NED") ? "Functie" : "Function";
@@ -561,19 +487,39 @@
     'show_derivative': true,
   };
 
-  let language = "ENG"
-  let other_language = "Dutch"
-  let sp = "Practice your derivatives!"
+  let urlParams = new URLSearchParams($page.url.searchParams.toString());
+  const is_lang_set = urlParams.has('lang');
+  if (!is_lang_set) {
+    urlParams.set('lang', 'en');
+    goto(`?${urlParams.toString()}`);
+  }
+  let language = "";
+  let other_language = "";
+  let sp = "";
+  console.log(urlParams.get('lang'));
+  if (urlParams.get('lang') == 'nl') {
+    language = "NED";
+    other_language = "English";
+    sp = "Oefen je afgeleides!";
+  } else {
+    language = "ENG";
+    other_language = "Dutch";
+    sp = "Practice your derivatives!";
+  }
   let formula = generate_formula(depth, true, "");
   // console.log(formula);
   let folds = do_derivative(formula)
 
   function toggle_language() {
     if (language == "NED") {
+      urlParams.set('lang', 'en');
+      goto(`?${urlParams.toString()}`);
       language = "ENG"
       other_language = "Dutch"
       sp = "Practice your derivatives!"
     } else {
+      urlParams.set('lang', 'nl');
+      goto(`?${urlParams.toString()}`);
       language = "NED"
       other_language = "English"
       sp = "Oefen je afgeleides!"
@@ -691,3 +637,8 @@
 
 <style>
 </style>
+
+<svelte:head>
+  <title>{(language == "ENG") ? "Derivatives" : "Differentiëren"}</title>
+</svelte:head>
+

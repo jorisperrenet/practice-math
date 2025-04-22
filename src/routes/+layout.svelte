@@ -1,7 +1,9 @@
 <script lang="ts">
+  const pageTitle = 'Practice Math';
+  const pageDescription = 'Hone your math skills!';
+
 	import '../app.css';
-	import Footer from '../components/Footer.svelte';
-	import { pageDescription, pageTitle } from '../const.ts';
+	import Footer from '../components/footer.svelte';
 
 	let { children } = $props();
 </script>
