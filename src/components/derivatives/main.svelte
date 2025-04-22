@@ -615,7 +615,7 @@
     </div>
   </fieldset>
 
-  <button class="w-full btn btn-soft btn-primary justify-right" on:click={() => generate_new()}><p>Generate</p></button>
+  <button class="w-full btn btn-soft btn-primary justify-right" on:click={() => generate_new()}><p>{(language == "ENG") ? "Generate" : "Genereer"}</p></button>
 
   {@html folds}
 </div>
