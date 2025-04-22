@@ -630,11 +630,11 @@
   </div>
 </header>
 
-<h1 class="mx-auto text-4xl font-bold my-2">{sp}</h1>
+<h1 class="mx-auto text-4xl font-bold my-2 text-center">{sp}</h1>
 
 <div class="mx-auto w-full max-w-screen-xl">
-  <fieldset class="fieldset bg-base-100 border-base-300 rounded-box border p-4">
-    <legend class="fieldset-legend">Generate Options</legend>
+  <fieldset class="fieldset bg-base-100 border-base-700 rounded-box border p-4">
+    <legend class="fieldset-legend max-w-xs">Generate Options</legend>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 content-between">
       <label class="label">
         <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('power_rule')} />
