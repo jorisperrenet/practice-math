@@ -71,16 +71,16 @@
     } else if (operators[idx] == "*") {
       let ldepth = Math.floor(Math.random() * (depth-1));
       let rdepth = depth - ldepth - 1;
-      if (settings.product_rule || ldepth == 0) {
+      if (!settings.product_rule || ldepth == 0) {
         return {
-          left: generate_formula(ldepth, false, operators[idx]),
-          right: generate_formula(rdepth, true, operators[idx]),
+          left: String(Math.floor(Math.random()*9) + 2),
+          right: generate_formula(depth-1, true, operators[idx]),
           operator: operators[idx],
         }
       } else {
         return {
-          left: String(Math.floor(Math.random()*9) + 2),
-          right: generate_formula(depth-1, true, operators[idx]),
+          left: generate_formula(ldepth, false, operators[idx]),
+          right: generate_formula(rdepth, true, operators[idx]),
           operator: operators[idx],
         }
       }
@@ -369,7 +369,7 @@
           });
         res.push({
             descr: start2 + getMathjaxSVG("b_2(x) = " + convert_to_tex(formula.base)) + ((settings.show_derivative) ? getMathjaxSVG("b_2'(x) = " + add_derivative(formula.base)) : ""),
-            folds: convert_to_tree(formula.inner),
+            folds: convert_to_tree(formula.base),
           });
       } else if (formula.operator == 'sqrt') {
         let cl = { inner: "x", operator: 'sqrt' };
