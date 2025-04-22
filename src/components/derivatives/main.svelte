@@ -49,7 +49,7 @@
       if (settings.use_ln) {
         operators.push("ln")
       }
-      if (last_operator != "sqrt" && settings.use_sqrt) {
+      if (last_operator != "sqrt" && settings.use_sqrt && last_operator != "^1") {
         operators.push("sqrt")
       }
       operators.push("^2")
