@@ -26,21 +26,7 @@
 	],
 	"main": "./package/index.js",
 	"exports": {
-		"./package.json": "./package.json",
-		"./package/MathML.svelte": {
-			"types": "./package/MathML.svelte.d.ts",
-			"svelte": "./package/MathML.svelte",
-			"require": "./package/MathML.svelte",
-			"import": "./package/MathML.svelte",
-			"default": "./package/MathML.svelte"
-		},
-		"./package/MathSVG.svelte": {
-			"types": "./package/MathSVG.svelte.d.ts",
-			"svelte": "./package/MathSVG.svelte",
-			"require": "./package/MathSVG.svelte",
-			"import": "./package/MathSVG.svelte",
-			"default": "./package/MathSVG.svelte"
-		}
+		"./package.json": "./package.json"
 	},
 	"devDependencies": {
 		"@nvl/sveltex": "^0.4.3",
@@ -59,19 +45,10 @@
 		"prettier-plugin-svelte": "^3.2.6",
 		"prettier-plugin-tailwindcss": "^0.6.5",
 		"publint": "^0.2.0",
-		"rehype-stringify": "^10.0.1",
-		"remark-parse": "^11.0.0",
-		"remark-rehype": "^11.1.2",
-		"remark-retext": "^6.0.1",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
-		"svelte-highlight": "^7.3.0",
 		"sveltekit-html-minifier": "^1.0.4",
 		"tailwindcss": "^3.4.17",
-		"tslib": "^2.4.1",
-		"typescript": "^5.0.0",
-		"typescript-eslint": "^8.0.0",
-		"unified": "^11.0.5",
 		"vite": "^5.0.11"
 	},
 	"dependencies": {
