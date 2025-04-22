@@ -1,21 +1,37 @@
-<!doctype html>
-<html lang=en>
+<!DOCTYPE html>
+<html lang="en">
 	<head>
-		<meta charset=utf-8>
-		<link rel=icon href=./favicon.png>
-		<meta name=viewport content="width=device-width,initial-scale=1">
+		<meta charset="utf-8" />
+		<link rel="icon" href="./favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		
-		<link rel=modulepreload href=./_app/immutable/entry/start.CHKDG_3u.js>
-		<link rel=modulepreload href=./_app/immutable/chunks/VEBr7Q0Y.js>
-		<link rel=modulepreload href=./_app/immutable/chunks/BcecqIJ4.js>
-		<link rel=modulepreload href=./_app/immutable/chunks/B0JjAvuQ.js>
-		<link rel=modulepreload href=./_app/immutable/entry/app.BgFBOoM7.js>
-		<link rel=modulepreload href=./_app/immutable/chunks/D3NUtUHa.js>
-		<link rel=modulepreload href=./_app/immutable/chunks/Cfdwqu6u.js>
+		<link rel="modulepreload" href="./static/immutable/entry/start.BCI8dNCZ.js">
+		<link rel="modulepreload" href="./static/immutable/chunks/Bd9298qh.js">
+		<link rel="modulepreload" href="./static/immutable/chunks/BcecqIJ4.js">
+		<link rel="modulepreload" href="./static/immutable/chunks/B0JjAvuQ.js">
+		<link rel="modulepreload" href="./static/immutable/entry/app.I8KGB3PD.js">
+		<link rel="modulepreload" href="./static/immutable/chunks/D3NUtUHa.js">
+		<link rel="modulepreload" href="./static/immutable/chunks/Cfdwqu6u.js">
 	</head>
 	<body>
 		<div>
-			<script>{__sveltekit_b4j6z4={base:new URL(".",location).pathname.slice(0,-1)};const t=document.currentScript.parentElement;Promise.all([import("./_app/immutable/entry/start.CHKDG_3u.js"),import("./_app/immutable/entry/app.BgFBOoM7.js")]).then((([e,a])=>{e.start(a,t)}))}</script>
+			<script>
+				{
+					__sveltekit_1ooypfi = {
+						base: new URL(".", location).pathname.slice(0, -1),
+						assets: "/practice-math"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("./static/immutable/entry/start.BCI8dNCZ.js"),
+						import("./static/immutable/entry/app.I8KGB3PD.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
 		</div>
 	</body>
 </html>
