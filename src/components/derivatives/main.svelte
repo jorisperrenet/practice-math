@@ -55,7 +55,7 @@
       operators.push("^2")
     }
     if (settings.power_rule) {
-      if (last_operator != "^1") {
+      if (last_operator != "^1" && last_operator != "sqrt") {
         operators.push("^1")
       }
     }
