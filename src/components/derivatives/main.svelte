@@ -623,12 +623,14 @@
 <div class="w-full max-w-screen-xl mx-auto mt-20">
   {#if language == "ENG"}
     <h2 class="mx-auto text-2xl font-bold my-2">Information</h2>
+    <li>This tool can't simplify functions. but you can! Every once in a while, you can try to simplify the function before taking the derivative. If all is well, you will get a (simplified) version of the derivative denoted here.</li>
     <li>Click on the function to see the last rule that was applied (recursively).</li>
     <li>[Square brackets] are used for the chain rule (specifically, the derivative of the inner part).</li>
     <li>{`{`}Curly brackets{`}`} are used for the product rule (specifically, the derivatives of the functions).</li>
   {/if}
   {#if language == "NED"}
     <h2 class="mx-auto text-2xl font-bold my-2">Informatie</h2>
+    <li>Deze tool kan geen functies vereenvoudigen, maar jij wel! Het is leerzaam om te proberen de functie eerste te herleiden, om hem vervolgens te differentiëren. Als het goed is, kom je op een (vereenvoudigde) versie uit van de afgeleide die hier staat.</li>
     <li>Klik op de functie om de laatst gebruikte regel te zien (recursief).</li>
     <li>[Vierkante haakjes] worden gebruikt voor de kettingregel (voor de afgeleide van de binnenste functie).</li>
     <li>{`{`}Accolades{`}`} worden gebruikt voor de productregel (voor de afgeleides van de functies).</li>
