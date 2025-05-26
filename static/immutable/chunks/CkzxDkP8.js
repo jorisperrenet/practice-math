@@ -1,1 +1,0 @@
-import{k as o,l as _,H as f,h as a,m as u,n as d,s,o as i,p as r,q as c}from"./DTgSILBY.js";let e;function p(){e=void 0}function g(h){let n=null,l=a;var t;if(a){for(n=r,e===void 0&&(e=c(document.head));e!==null&&(e.nodeType!==8||e.data!==u);)e=d(e);e===null?s(!1):e=i(d(e))}a||(t=document.head.appendChild(o()));try{_(()=>h(t),f)}finally{l&&(s(!0),e=r,i(n))}}export{g as h,p as r};
