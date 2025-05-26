@@ -493,6 +493,7 @@
 
   let urlParams = new URLSearchParams($page.url.searchParams.toString());
   if (urlParams.get('level') == '1') {
+    depth = 4;
     settings.use_ln = false;
     settings.use_exponentials = false;
   }
@@ -617,7 +618,7 @@
       </label>
       <label class="label">
         <div class="w-full max-w-xs">
-          <input type="range" min="0" max="10" value="1" class="range" step="1" on:input={handle_depth_change}/>
+          <input type="range" min="0" max="10" value="{depth}" class="range" step="1" on:input={handle_depth_change}/>
         </div>
         {(language == "ENG") ? "Depth" : "Diepte"} = {depth}
       </label>
