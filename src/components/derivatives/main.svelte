@@ -1,5 +1,6 @@
 <script lang="ts">
   const githubLink = "https://github.com/jorisperrenet/practice-math";
+  import { onMount } from 'svelte';
 
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
@@ -52,10 +53,12 @@
       if (last_operator != "sqrt" && settings.use_sqrt && last_operator != "^1") {
         operators.push("sqrt")
       }
-      operators.push("^2")
+      if (settings.use_exponentials) {
+        operators.push("^2")
+      }
     }
     if (settings.power_rule) {
-      if (last_operator != "^1" && last_operator != "sqrt") {
+      if (last_operator != "^1" && last_operator != "sqrt" && last_operator != "ln") {
         operators.push("^1")
       }
     }
@@ -484,10 +487,15 @@
     'power_rule': true,
     'use_sqrt': true,
     'use_ln': true,
+    'use_exponentials': true,
     'show_derivative': true,
   };
 
   let urlParams = new URLSearchParams($page.url.searchParams.toString());
+  if (urlParams.get('level') == '1') {
+    settings.use_ln = false;
+    settings.use_exponentials = false;
+  }
   const is_lang_set = urlParams.has('lang');
   if (!is_lang_set) {
     urlParams.set('lang', 'en');
@@ -496,11 +504,11 @@
   let language = "";
   let other_language = "";
   let sp = "";
-  console.log(urlParams.get('lang'));
+  // console.log(urlParams.get('lang'));
   if (urlParams.get('lang') == 'nl') {
     language = "NED";
     other_language = "English";
-    sp = "Oefen je afgeleides!";
+    sp = "Oefen met differentiëren!";
   } else {
     language = "ENG";
     other_language = "Dutch";
@@ -509,6 +517,16 @@
   let formula = generate_formula(depth, true, "");
   // console.log(formula);
   let folds = do_derivative(formula)
+
+  function set_settings() {
+    for (var value in settings) {
+      if (value == "show_derivative") { continue }
+      document.getElementById(value).checked = settings[value];
+    }
+  }
+  onMount(() => {
+    set_settings()
+	});
 
   function toggle_language() {
     if (language == "NED") {
@@ -536,6 +554,9 @@
 
   function toggle_value(value) {
     settings[value] = !settings[value];
+    if (value != "show_derivative") {
+      document.getElementById(value).checked = settings[value];
+    }
     console.log(value, "set to", settings[value])
     if (value != "show_derivative") {
       formula = generate_formula(depth, true, "");
@@ -580,18 +601,18 @@
 
 <div class="mx-auto w-full max-w-screen-xl">
   <fieldset class="fieldset bg-base-100 border-base-700 rounded-box border p-4">
-    <legend class="fieldset-legend max-w-xs">Generate Options</legend>
+    <legend class="fieldset-legend max-w-xs">{(language == "ENG") ? "Settings" : "Instellingen"}</legend>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 content-between">
       <label class="label">
-        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('power_rule')} />
+        <input type="checkbox" id="power_rule" class="toggle" on:change={() => toggle_value('power_rule')} />
         {(language == "ENG") ? "Power Rule" : "Machtregel"}
       </label>
       <label class="label">
-        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('chain_rule')} />
+        <input type="checkbox" id="chain_rule" class="toggle" on:change={() => toggle_value('chain_rule')} />
         {(language == "ENG") ? "Chain Rule" : "Kettingregel"}
       </label>
       <label class="label">
-        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('product_rule')} />
+        <input type="checkbox" id="product_rule" class="toggle" on:change={() => toggle_value('product_rule')} />
         {(language == "ENG") ? "Product Rule" : "Productregel"}
       </label>
       <label class="label">
@@ -601,17 +622,18 @@
         {(language == "ENG") ? "Depth" : "Diepte"} = {depth}
       </label>
       <label class="label">
-        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('use_ln')} />
+        <input type="checkbox" class="toggle" id="use_ln" on:change={() => toggle_value('use_ln')} />
         {(language == "ENG") ? "ln" : "ln"}
       </label>
       <label class="label">
-        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('use_sqrt')} />
+        <input type="checkbox" id="use_sqrt" class="toggle" on:change={() => toggle_value('use_sqrt')} />
         {(language == "ENG") ? "sqrt" : "wortel"}
       </label>
       <label class="label">
-        <input type="checkbox" checked="checked" class="toggle" on:change={() => toggle_value('show_derivative')} />
-        {(language == "ENG") ? "show derivative" : "laat afgeleide zien"}
+        <input type="checkbox" id="use_exponentials" class="toggle" on:change={() => toggle_value('use_exponentials')} />
+        {(language == "ENG") ? "exponential" : "machtsverband"}
       </label>
+      <button class="w-full btn btn-soft btn-primary justify-right" on:click={() => toggle_value('show_derivative')}><p>{(language == "ENG") ? "show derivative" : "laat afgeleide zien"}</p></button>
     </div>
   </fieldset>
 
@@ -623,7 +645,7 @@
 <div class="w-full max-w-screen-xl mx-auto mt-20">
   {#if language == "ENG"}
     <h2 class="mx-auto text-2xl font-bold my-2">Information</h2>
-    <li>This tool can't simplify functions. but you can! Every once in a while, you can try to simplify the function before taking the derivative. If all is well, you will get a (simplified) version of the derivative denoted here.</li>
+    <li>This tool can't simplify functions, but you can! Every once in a while, you can try to simplify the function before taking the derivative. If all is well, you will get a (simplified) version of the derivative denoted here.</li>
     <li>Click on the function to see the last rule that was applied (recursively).</li>
     <li>[Square brackets] are used for the chain rule (specifically, the derivative of the inner part).</li>
     <li>{`{`}Curly brackets{`}`} are used for the product rule (specifically, the derivatives of the functions).</li>
