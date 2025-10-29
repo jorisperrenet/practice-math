@@ -87,9 +87,9 @@
         }
 
         if (sin) {
-            beginpunt = getMathjaxSVG(String.raw`(` + d + "," + e + String.raw`)`);
+            beginpunt = getMathjaxSVG(String.raw`(` + d + "," + b + String.raw`)`);
         } else {
-            let p = a+e;
+            let p = a+b;
             beginpunt = getMathjaxSVG(String.raw`(` + d + "," + p + String.raw`)`);
         }
 
