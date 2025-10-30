@@ -51,7 +51,7 @@
         c_pi = (Math.random()*5 < 1)
         a = Math.floor(Math.random()*7) - 3;
         b = Math.floor(Math.random()*9) - 4;
-        c = Math.floor(Math.random()*6) - 3;
+        c = Math.floor(Math.random()*3);
         d = Math.floor(Math.random()*6) - 3;
         if (a == 0) { a = 1 };
         if (c == 0 || c == -1) { c = 1 };
