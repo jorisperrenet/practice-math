@@ -604,33 +604,33 @@
   <fieldset class="fieldset bg-base-100 border-base-700 rounded-box border p-4">
     <legend class="fieldset-legend max-w-xs">{(language == "ENG") ? "Settings" : "Instellingen"}</legend>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 content-between">
-      <label class="label">
+      <label class="label text-slate-700">
         <input type="checkbox" id="power_rule" class="toggle" on:change={() => toggle_value('power_rule')} />
         {(language == "ENG") ? "Power Rule" : "Machtregel"}
       </label>
-      <label class="label">
+      <label class="label text-slate-700">
         <input type="checkbox" id="chain_rule" class="toggle" on:change={() => toggle_value('chain_rule')} />
         {(language == "ENG") ? "Chain Rule" : "Kettingregel"}
       </label>
-      <label class="label">
+      <label class="label text-slate-700">
         <input type="checkbox" id="product_rule" class="toggle" on:change={() => toggle_value('product_rule')} />
         {(language == "ENG") ? "Product Rule" : "Productregel"}
       </label>
-      <label class="label">
+      <label class="label text-slate-700">
         <div class="w-full max-w-xs">
           <input type="range" min="0" max="10" value="{depth}" class="range" step="1" on:input={handle_depth_change}/>
         </div>
         {(language == "ENG") ? "Depth" : "Diepte"} = {depth}
       </label>
-      <label class="label">
+      <label class="label text-slate-700">
         <input type="checkbox" class="toggle" id="use_ln" on:change={() => toggle_value('use_ln')} />
         {(language == "ENG") ? "ln" : "ln"}
       </label>
-      <label class="label">
+      <label class="label text-slate-700">
         <input type="checkbox" id="use_sqrt" class="toggle" on:change={() => toggle_value('use_sqrt')} />
         {(language == "ENG") ? "sqrt" : "wortel"}
       </label>
-      <label class="label">
+      <label class="label text-slate-700">
         <input type="checkbox" id="use_exponentials" class="toggle" on:change={() => toggle_value('use_exponentials')} />
         {(language == "ENG") ? "exponential" : "machtsverband"}
       </label>
