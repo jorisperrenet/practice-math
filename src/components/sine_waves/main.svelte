@@ -1,6 +1,7 @@
 <script lang="ts">
   const githubLink = "https://github.com/jorisperrenet/practice-math";
   import { onMount } from 'svelte';
+  import { browser } from "$app/environment";
 
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
@@ -115,16 +116,16 @@
     generate_new()
 
 
-  let urlParams = new URLSearchParams($page.url.searchParams.toString());
-  const is_lang_set = urlParams.has('lang');
-  if (!is_lang_set) {
+  let urlParams = browser
+    ? new URLSearchParams($page.url.searchParams.toString())
+    : new URLSearchParams();
+  if (browser && !urlParams.has('lang')) {
     urlParams.set('lang', 'en');
     goto(`?${urlParams.toString()}`);
   }
   let language = "";
   let other_language = "";
   let sp = "";
-  // console.log(urlParams.get('lang'));
   if (urlParams.get('lang') == 'nl') {
     language = "NED";
     other_language = "English";
@@ -261,7 +262,4 @@
 <style>
 </style>
 
-<svelte:head>
-  <title>{(language == "ENG") ? "Sine Waves" : "Sinusoïden"}</title>
-</svelte:head>
 
