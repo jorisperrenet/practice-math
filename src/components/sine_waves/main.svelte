@@ -1,265 +1,201 @@
 <script lang="ts">
-  const githubLink = "https://github.com/jorisperrenet/practice-math";
-  import { onMount } from 'svelte';
-  import { browser } from "$app/environment";
-
-  import { page } from "$app/stores";
-  import { goto } from "$app/navigation";
-
+	import { onMount } from 'svelte';
 	import { mathjax } from 'mathjax-full/js/mathjax';
 	import { TeX } from 'mathjax-full/js/input/tex';
 	import { SVG } from 'mathjax-full/js/output/svg';
 	import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor';
 	import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html';
 
-	const svgOptions={ fontCache: 'local' };
-	const convertOptions={ display: true };
-  const texOptions={ packages: ['base', 'ams'] };
-
 	const adaptor = liteAdaptor();
 	RegisterHTMLHandler(adaptor);
 
-	const mathjaxSVGDocument = mathjax.document('', {
-		InputJax: new TeX(texOptions),
-		OutputJax: new SVG(svgOptions)
+	const mathjaxDocument = mathjax.document('', {
+		InputJax: new TeX({ packages: ['base', 'ams'] }),
+		OutputJax: new SVG({ fontCache: 'local' })
 	});
 
-	function getMathjaxSVG(tex: string): string {
-		const node = mathjaxSVGDocument.convert(tex, convertOptions);
-		return adaptor.innerHTML(node);
+	function mathSvg(tex: string): string {
+		return adaptor.innerHTML(mathjaxDocument.convert(tex, { display: true }));
 	}
 
-    let x = getMathjaxSVG("f(x) = 3");
+	type Exercise = {
+		coefficient: number;
+		midline: number;
+		frequency: number;
+		frequencyIncludesPi: boolean;
+		shift: number;
+		trig: 'sin' | 'cos';
+	};
 
-    let show = 0;
-    function show_new() {
-        show += 1;
-    }
+	const translations = {
+		en: {
+			title: 'Practice sine waves',
+			introduction: 'Find the amplitude, midline, period and a convenient reference point from each equation.',
+			newExercise: 'New exercise',
+			revealNext: 'Reveal next answer',
+			allShown: 'All answers shown',
+			equation: 'Equation',
+			notRevealed: 'Not revealed',
+			answers: ['Amplitude', 'Midline', 'Period', 'Reference point']
+		},
+		nl: {
+			title: 'Oefen met sinusoïden',
+			introduction: 'Bepaal de amplitude, evenwichtsstand, periode en een handig referentiepunt van iedere formule.',
+			newExercise: 'Nieuwe opgave',
+			revealNext: 'Toon volgend antwoord',
+			allShown: 'Alle antwoorden getoond',
+			equation: 'Formule',
+			notRevealed: 'Nog niet getoond',
+			answers: ['Amplitude', 'Evenwichtsstand', 'Periode', 'Referentiepunt']
+		}
+	} as const;
 
-    let a = 0;
-    let b = -2;
-    let c = 1;
-    let c_pi = false;
-    let d = -1;
-    let sin = true;
-    let amplitude = a;
-    let evenwicht = b;
-    let periode = String.raw`\frac{2\pi}{c}`;
-    let beginpunt = String.raw`\frac{2\pi}{c}`;
-    function generate_new() {
-        show = 0;
-        sin = (Math.random()*3 > 1)
-        c_pi = (Math.random()*5 < 1)
-        a = Math.floor(Math.random()*7) - 3;
-        b = Math.floor(Math.random()*9) - 4;
-        c = Math.floor(Math.random()*3);
-        d = Math.floor(Math.random()*6) - 3;
-        if (a == 0) { a = 1 };
-        if (c == 0 || c == -1) { c = 1 };
-        if (b == 0) { b = 1 };
+	let language: 'en' | 'nl' = 'en';
+	$: text = translations[language];
 
-        let txt = sin ? String.raw`\sin` : String.raw`\cos`;
-        let am = (a > 0) ? "+" + a : a;
-        if (a == 1) { am = "+" };
-        if (a == -1) { am = "-" };
-        let dd = (d < 0) ? "+" + -d : -d;
-        let pi = c_pi ? String.raw`\pi ` : String.raw``;
+	let revealed = 0;
+	let formula = '';
+	let answers: string[] = [];
 
-        amplitude = getMathjaxSVG(a.toString());
-        evenwicht = getMathjaxSVG(b.toString());
-        if (c == 1 && c_pi) {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + pi + "} = 2");
-        } else if (c == 1 && c_pi == false) {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + 1 + String.raw`} = 2\pi`);
-        } else if (c == 2 && c_pi) {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + c + pi + "} = 1");
-        } else if (c == 2 && c_pi == false) {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + c + pi + String.raw`} = \pi`);
-        } else if (c == -2 && c_pi) {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + c + pi + "} = -1");
-        } else if (c == -2 && c_pi == false) {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + c + pi + String.raw`} = -\pi`);
-        } else if (c == -3 && c_pi) {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + c + pi + String.raw`} = -\frac{2}{3}`);
-        } else if (c == -3 && c_pi == false) {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + c + pi + String.raw`} = -\frac{2}{3} \pi`);
-        } else {
-            periode = getMathjaxSVG(String.raw`\frac{2\pi}{` + c + pi + "}");
-        }
+	function integer(min: number, max: number): number {
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
 
-        if (sin) {
-            beginpunt = getMathjaxSVG(String.raw`(` + d + "," + b + String.raw`)`);
-        } else {
-            let p = a+b;
-            beginpunt = getMathjaxSVG(String.raw`(` + d + "," + p + String.raw`)`);
-        }
+	function signedTerm(value: number): string {
+		return value < 0 ? `+${Math.abs(value)}` : `-${value}`;
+	}
 
-        if (d == 0) {
-            if (c == 1) {
-                x = getMathjaxSVG("f(x) = " + b + am + txt + "("+ pi + "x)");
-            } else {
-                x = getMathjaxSVG("f(x) = " + b + am + txt + "("+ c + pi + "x)");
-            }
-        } else {
-            if (c == 1) {
-                if (c_pi == false) {
-                    x = getMathjaxSVG("f(x) = " + b + am + txt + "(x" + dd + ")");
-                } else {
-                    x = getMathjaxSVG("f(x) = " + b + am + txt + "("+ pi + "(x" + dd + "))");
-                }
-            } else {
-                x = getMathjaxSVG("f(x) = " + b + am + txt + "("+ c + pi + "(x" + dd + "))");
-            }
-        }
-    }
+	function renderExercise(exercise: Exercise) {
+		const magnitude = Math.abs(exercise.coefficient);
+		const coefficient = magnitude === 1 ? '' : String(magnitude);
+		const sign = exercise.coefficient < 0 ? '-' : '+';
+		const trig = exercise.trig === 'sin' ? String.raw`\sin` : String.raw`\cos`;
+		const shiftedX = exercise.shift === 0 ? 'x' : `(x${signedTerm(exercise.shift)})`;
+		const frequencyNumber = exercise.frequency === 1 ? '' : String(exercise.frequency);
+		const frequencyPi = exercise.frequencyIncludesPi ? String.raw`\pi` : '';
+		const argument = `${frequencyNumber}${frequencyPi}${shiftedX}`;
 
-    generate_new()
+		formula = mathSvg(String.raw`f(x)=${exercise.midline}${sign}${coefficient}${trig}\left(${argument}\right)`);
 
+		const amplitude = mathSvg(String(magnitude));
+		const midline = mathSvg(String(exercise.midline));
+		const period = exercise.frequencyIncludesPi
+			? mathSvg(exercise.frequency === 1 ? '2' : String.raw`\frac{2}{${exercise.frequency}}`)
+			: mathSvg(
+					exercise.frequency === 1
+						? String.raw`2\pi`
+						: String.raw`\frac{2\pi}{${exercise.frequency}}`
+				);
+		const referenceY =
+			exercise.trig === 'sin'
+				? exercise.midline
+				: exercise.midline + exercise.coefficient;
+		const referencePoint = mathSvg(`(${exercise.shift},${referenceY})`);
 
-  let urlParams = browser
-    ? new URLSearchParams($page.url.searchParams.toString())
-    : new URLSearchParams();
-  if (browser && !urlParams.has('lang')) {
-    urlParams.set('lang', 'en');
-    goto(`?${urlParams.toString()}`);
-  }
-  let language = "";
-  let other_language = "";
-  let sp = "";
-  if (urlParams.get('lang') == 'nl') {
-    language = "NED";
-    other_language = "English";
-    sp = "Oefen met sinusoïden!";
-  } else {
-    language = "ENG";
-    other_language = "Dutch";
-    sp = "Practice your sine waves!";
-  }
+		answers = [amplitude, midline, period, referencePoint];
+		revealed = 0;
+	}
 
-  function set_settings() {
-    for (var value in settings) {
-      if (value == "show_derivative") { continue }
-      document.getElementById(value).checked = settings[value];
-    }
-  }
-  onMount(() => {
-    set_settings()
+	function generateExercise() {
+		let coefficient = integer(-4, 4);
+		if (coefficient === 0) coefficient = 1;
+
+		renderExercise({
+			coefficient,
+			midline: integer(-4, 4),
+			frequency: integer(1, 3),
+			frequencyIncludesPi: Math.random() < 0.35,
+			shift: integer(-3, 3),
+			trig: Math.random() < 0.5 ? 'sin' : 'cos'
+		});
+	}
+
+	function revealNext() {
+		revealed = Math.min(revealed + 1, answers.length);
+	}
+
+	function setLanguage(nextLanguage: 'en' | 'nl') {
+		language = nextLanguage;
+		const parameters = new URLSearchParams(window.location.search);
+		parameters.set('lang', nextLanguage);
+		window.history.replaceState(
+			window.history.state,
+			'',
+			`${window.location.pathname}?${parameters.toString()}`
+		);
+	}
+
+	onMount(() => {
+		language = new URLSearchParams(window.location.search).get('lang') === 'nl' ? 'nl' : 'en';
 	});
 
-  function toggle_language() {
-    if (language == "NED") {
-      urlParams.set('lang', 'en');
-      goto(`?${urlParams.toString()}`);
-      language = "ENG"
-      other_language = "Dutch"
-      sp = "Practice your sine waves!";
-    } else {
-      urlParams.set('lang', 'nl');
-      goto(`?${urlParams.toString()}`);
-      language = "NED"
-      other_language = "English"
-      sp = "Oefen met sinusoïden!";
-    }
-    folds = do_derivative(formula);
-  }
-
-  function toggle_value(value) {
-    settings[value] = !settings[value];
-    if (value != "show_derivative") {
-      document.getElementById(value).checked = settings[value];
-    }
-    console.log(value, "set to", settings[value])
-    if (value != "show_derivative") {
-      formula = generate_formula(depth, true, "");
-    }
-  }
+	// A deterministic initial exercise avoids random server/client HTML differences.
+	renderExercise({
+		coefficient: -3,
+		midline: 2,
+		frequency: 2,
+		frequencyIncludesPi: false,
+		shift: -1,
+		trig: 'sin'
+	});
 </script>
 
-<header class="-mt-10 pt-0">
-  <div class="mx-auto flex h-6 pb-2 max-w-screen-xl items-center gap-8 px-4">
-    <div class="flex flex-1 items-center justify-end justify-between">
-      <div class="flex items-center gap-4">
-        <button class="btn btn-soft btn-primary justify-right" on:click={() => toggle_language()}><p>Convert to {other_language}</p></button>
-      </div>
-      <a
-        aria-label="Github"
-        target="_blank"
-        href={githubLink}
-        rel="noopener"
-        class="hover:text-gray-600 justify-right"
-        ><svg
-          width="20"
-          height="20"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 512 512"
-          class="h-10 w-10 fill-current md:h-12 md:w-12"
-          ><path
-            d="M256,32C132.3,32,32,134.9,32,261.7c0,101.5,64.2,187.5,153.2,217.9a17.56,17.56,0,0,0,3.8.4c8.3,0,11.5-6.1,11.5-11.4,0-5.5-.2-19.9-.3-39.1a102.4,102.4,0,0,1-22.6,2.7c-43.1,0-52.9-33.5-52.9-33.5-10.2-26.5-24.9-33.6-24.9-33.6-19.5-13.7-.1-14.1,1.4-14.1h.1c22.5,2,34.3,23.8,34.3,23.8,11.2,19.6,26.2,25.1,39.6,25.1a63,63,0,0,0,25.6-6c2-14.8,7.8-24.9,14.2-30.7-49.7-5.8-102-25.5-102-113.5,0-25.1,8.7-45.6,23-61.6-2.3-5.8-10-29.2,2.2-60.8a18.64,18.64,0,0,1,5-.5c8.1,0,26.4,3.1,56.6,24.1a208.21,208.21,0,0,1,112.2,0c30.2-21,48.5-24.1,56.6-24.1a18.64,18.64,0,0,1,5,.5c12.2,31.6,4.5,55,2.2,60.8,14.3,16.1,23,36.6,23,61.6,0,88.2-52.4,107.6-102.3,113.3,8,7.1,15.2,21.1,15.2,42.5,0,30.7-.3,55.5-.3,63,0,5.4,3.1,11.5,11.4,11.5a19.35,19.35,0,0,0,4-.4C415.9,449.2,480,363.1,480,261.7,480,134.9,379.7,32,256,32Z"
-          /></svg
-        ></a
-      >
-    </div>
-  </div>
-</header>
+<section class="mx-auto w-full max-w-3xl" lang={language}>
+	<header class="text-center">
+		<div class="mb-4 flex justify-center">
+			<div class="inline-flex rounded-xl border border-gray-300 bg-white p-1 shadow-sm dark:border-gray-600 dark:bg-gray-800" aria-label={language === 'en' ? 'Language' : 'Taal'}>
+				<button
+					type="button"
+					on:click={() => setLanguage('en')}
+					aria-pressed={language === 'en'}
+					class="rounded-lg px-3 py-1.5 text-sm font-bold transition-colors {language === 'en' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
+				>English</button>
+				<button
+					type="button"
+					on:click={() => setLanguage('nl')}
+					aria-pressed={language === 'nl'}
+					class="rounded-lg px-3 py-1.5 text-sm font-bold transition-colors {language === 'nl' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
+				>Nederlands</button>
+			</div>
+		</div>
+		<h1 class="text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white sm:text-4xl">{text.title}</h1>
+		<p class="mx-auto mt-3 max-w-2xl text-base leading-7 text-gray-600 dark:text-gray-300">
+			{text.introduction}
+		</p>
+	</header>
 
-<h1 class="mx-auto text-4xl font-bold my-2 text-center">{sp}</h1>
+	<div class="mt-7 flex flex-wrap justify-center gap-3">
+		<button
+			type="button"
+			on:click={generateExercise}
+			class="rounded-xl bg-blue-600 px-5 py-2.5 font-bold text-white shadow-sm transition hover:bg-blue-700"
+		>{text.newExercise}</button>
+		<button
+			type="button"
+			on:click={revealNext}
+			disabled={revealed >= answers.length}
+			class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 font-bold text-gray-800 transition hover:border-blue-400 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:hover:border-blue-400 dark:hover:text-blue-300"
+		>{revealed >= answers.length ? text.allShown : text.revealNext}</button>
+	</div>
 
-<div class="mx-auto flex flex-col justify-items-center max-w-screen-xl">
-  <div>
-      <button class="btn btn-primary" on:click={() => generate_new()}><p>{(language == "ENG") ? "Generate" : "Genereer"}</p></button>
-      <button class="btn btn-soft" on:click={() => show_new()}><p>{(language == "ENG") ? "Show answer" : "Laat antwoord zien"}</p></button>
-  </div>
+	<div class="mt-8 overflow-x-auto rounded-2xl border border-gray-200 bg-white px-4 py-8 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:px-8">
+		<p class="mb-4 text-xs font-bold uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400">{text.equation}</p>
+		<div class="flex min-w-max justify-center text-gray-950 dark:text-white">{@html formula}</div>
+	</div>
 
-  <div class="mt-20 mx-auto">
-      {@html x}
-  </div>
+	<div class="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+		{#each text.answers as label, index}
+			<div class="grid min-h-16 grid-cols-[minmax(8rem,0.8fr)_minmax(0,1.2fr)] items-center border-b border-gray-200 last:border-b-0 dark:border-gray-700">
+				<div class="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">{label}</div>
+				<div class="border-l border-gray-200 px-4 py-3 text-center text-gray-950 dark:border-gray-700 dark:text-white">
+					{#if revealed > index}
+						{@html answers[index]}
+					{:else}
+						<span class="text-gray-400 dark:text-gray-500">{text.notRevealed}</span>
+					{/if}
+				</div>
+			</div>
+		{/each}
+	</div>
 
-  <table class="text-light mt-10 mx-auto">
-    <tbody>
-        <tr>
-            <th class="border-2 font-normal">Amplitude</th>
-            <th class="border-2 px-2 font-normal">{@html (show > 0) ? amplitude : "..."}</th>
-        </tr>
-    </tbody>
-    <tbody>
-        <tr>
-            <th class="border-2 px-2 font-normal">Evenwichtsstand</th>
-            <th class="border-2 px-2 font-normal">{@html (show > 1) ? evenwicht : "..."}</th>
-        </tr>
-    </tbody>
-    <tbody>
-        <tr>
-            <th class="border-2 font-normal">Periode</th>
-            <th class="border-2 p-2 font-normal">{@html (show > 2) ? periode : "..."}</th>
-        </tr>
-    </tbody>
-    <tbody>
-        <tr>
-            <th class="border-2 font-normal">Beginpunt</th>
-            <th class="border-2 p-1 px-2 font-normal">{@html (show > 3) ? beginpunt : "..."}</th>
-        </tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- <div class="w-full max-w-screen-xl mx-auto mt-20"> -->
-<!--   {#if language == "ENG"} -->
-<!--     <h2 class="mx-auto text-2xl font-bold my-2">Information</h2> -->
-<!--     <li>This tool can't simplify functions, but you can! Every once in a while, you can try to simplify the function before taking the derivative. If all is well, you will get a (simplified) version of the derivative denoted here.</li> -->
-<!--     <li>Click on the function to see the last rule that was applied (recursively).</li> -->
-<!--     <li>[Square brackets] are used for the chain rule (specifically, the derivative of the inner part).</li> -->
-<!--     <li>{`{`}Curly brackets{`}`} are used for the product rule (specifically, the derivatives of the functions).</li> -->
-<!--   {/if} -->
-<!--   {#if language == "NED"} -->
-<!--     <h2 class="mx-auto text-2xl font-bold my-2">Informatie</h2> -->
-<!--     <li>Deze tool kan geen functies vereenvoudigen, maar jij wel! Het is leerzaam om te proberen de functie eerste te herleiden, om hem vervolgens te differentiëren. Als het goed is, kom je op een (vereenvoudigde) versie uit van de afgeleide die hier staat.</li> -->
-<!--     <li>Klik op de functie om de laatst gebruikte regel te zien (recursief).</li> -->
-<!--     <li>[Vierkante haakjes] worden gebruikt voor de kettingregel (voor de afgeleide van de binnenste functie).</li> -->
-<!--     <li>{`{`}Accolades{`}`} worden gebruikt voor de productregel (voor de afgeleides van de functies).</li> -->
-<!--   {/if} -->
-<!-- </div> -->
-
-<style>
-</style>
-
-
+</section>

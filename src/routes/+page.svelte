@@ -14,8 +14,15 @@
 	<meta name="twitter:image" content="https://jorisperrenet.com/profile.jpg" />
 </svelte:head>
 
-<main class="flex w-full flex-col py-16 px-4">
-  <h1 class="mx-auto text-4xl font-bold">Practice Math!</h1>
-  <a class="mx-auto text-2xl font-medium text-blue-600 dark:text-blue-500 hover:underline" href="./derivatives">Practice Derivatives</a>
-  <a class="mx-auto text-2xl font-medium text-blue-600 dark:text-blue-500 hover:underline" href="./sine_waves">Practice Sine Waves</a>
+<main class="mx-auto flex w-full max-w-4xl flex-col px-4 py-12 text-center sm:px-6 sm:py-16">
+  <h1 class="text-4xl font-bold tracking-tight text-gray-950 dark:text-white">Practice Math</h1>
+  <p class="mx-auto mt-3 max-w-2xl text-lg text-gray-600 dark:text-gray-300">Generate unlimited exercises, work at your own pace, and reveal a worked solution when you need it.</p>
+  <div class="mx-auto mt-8 grid w-full max-w-3xl gap-4 sm:grid-cols-2">
+    <a class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md dark:border-gray-700 dark:bg-gray-800" href="./derivatives/">
+      <strong class="text-xl">Derivatives</strong><span class="mt-2 block text-sm text-gray-600 dark:text-gray-300">Differentiate generated functions and compare your result with each solution.</span>
+    </a>
+    <a class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-md dark:border-gray-700 dark:bg-gray-800" href="./sine_waves/">
+      <strong class="text-xl">Sine waves</strong><span class="mt-2 block text-sm text-gray-600 dark:text-gray-300">Read amplitude, period, phase, and vertical shift from changing waveforms.</span>
+    </a>
+  </div>
 </main>

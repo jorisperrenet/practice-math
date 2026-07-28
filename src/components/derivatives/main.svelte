@@ -1,5 +1,4 @@
 <script lang="ts">
-  const githubLink = "https://github.com/jorisperrenet/practice-math";
   import { onMount } from 'svelte';
   import { browser } from "$app/environment";
 
@@ -533,13 +532,13 @@
   function toggle_language() {
     if (language == "NED") {
       urlParams.set('lang', 'en');
-      goto(`?${urlParams.toString()}`);
+      window.history.replaceState(window.history.state, '', `?${urlParams.toString()}`);
       language = "ENG"
       other_language = "Dutch"
       sp = "Practice your derivatives!"
     } else {
       urlParams.set('lang', 'nl');
-      goto(`?${urlParams.toString()}`);
+      window.history.replaceState(window.history.state, '', `?${urlParams.toString()}`);
       language = "NED"
       other_language = "English"
       sp = "Oefen je afgeleides!"
@@ -572,96 +571,85 @@
   }
 </script>
 
-<header class="-mt-10 pt-0">
-  <div class="mx-auto flex h-6 pb-2 max-w-screen-xl items-center gap-8 px-4">
-    <div class="flex flex-1 items-center justify-end justify-between">
-      <div class="flex items-center gap-4">
-        <button class="btn btn-soft btn-primary justify-right" on:click={() => toggle_language()}><p>Convert to {other_language}</p></button>
+<section class="mx-auto w-full max-w-5xl">
+  <header class="text-center">
+    <div class="mb-4 flex justify-center">
+      <div class="inline-flex rounded-xl border border-gray-300 bg-white p-1 shadow-sm dark:border-gray-600 dark:bg-gray-800" aria-label={language === 'ENG' ? 'Language' : 'Taal'}>
+        <button type="button" on:click={() => language !== 'ENG' && toggle_language()} aria-pressed={language === 'ENG'} class="rounded-lg px-3 py-1.5 text-sm font-bold transition-colors {language === 'ENG' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}">English</button>
+        <button type="button" on:click={() => language !== 'NED' && toggle_language()} aria-pressed={language === 'NED'} class="rounded-lg px-3 py-1.5 text-sm font-bold transition-colors {language === 'NED' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}">Nederlands</button>
       </div>
-      <a
-        aria-label="Github"
-        target="_blank"
-        href={githubLink}
-        rel="noopener"
-        class="hover:text-gray-600 justify-right"
-        ><svg
-          width="20"
-          height="20"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 512 512"
-          class="h-10 w-10 fill-current md:h-12 md:w-12"
-          ><path
-            d="M256,32C132.3,32,32,134.9,32,261.7c0,101.5,64.2,187.5,153.2,217.9a17.56,17.56,0,0,0,3.8.4c8.3,0,11.5-6.1,11.5-11.4,0-5.5-.2-19.9-.3-39.1a102.4,102.4,0,0,1-22.6,2.7c-43.1,0-52.9-33.5-52.9-33.5-10.2-26.5-24.9-33.6-24.9-33.6-19.5-13.7-.1-14.1,1.4-14.1h.1c22.5,2,34.3,23.8,34.3,23.8,11.2,19.6,26.2,25.1,39.6,25.1a63,63,0,0,0,25.6-6c2-14.8,7.8-24.9,14.2-30.7-49.7-5.8-102-25.5-102-113.5,0-25.1,8.7-45.6,23-61.6-2.3-5.8-10-29.2,2.2-60.8a18.64,18.64,0,0,1,5-.5c8.1,0,26.4,3.1,56.6,24.1a208.21,208.21,0,0,1,112.2,0c30.2-21,48.5-24.1,56.6-24.1a18.64,18.64,0,0,1,5,.5c12.2,31.6,4.5,55,2.2,60.8,14.3,16.1,23,36.6,23,61.6,0,88.2-52.4,107.6-102.3,113.3,8,7.1,15.2,21.1,15.2,42.5,0,30.7-.3,55.5-.3,63,0,5.4,3.1,11.5,11.4,11.5a19.35,19.35,0,0,0,4-.4C415.9,449.2,480,363.1,480,261.7,480,134.9,379.7,32,256,32Z"
-          /></svg
-        ></a
-      >
     </div>
-  </div>
-</header>
+    <h1 class="text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white sm:text-4xl">{sp}</h1>
+    <p class="mx-auto mt-3 max-w-2xl text-base leading-7 text-gray-600 dark:text-gray-300">
+      {(language == "ENG") ? "Generate derivative exercises and inspect which differentiation rule is applied at every step." : "Genereer opgaven met afgeleiden en bekijk bij iedere stap welke differentieerregel wordt toegepast."}
+    </p>
+  </header>
 
-<h1 class="mx-auto text-4xl font-bold my-2 text-center">{sp}</h1>
-
-<div class="mx-auto w-full max-w-screen-xl">
-  <fieldset class="fieldset bg-base-100 border-base-700 rounded-box border p-4">
-    <legend class="fieldset-legend max-w-xs">{(language == "ENG") ? "Settings" : "Instellingen"}</legend>
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 content-between">
-      <label class="label text-slate-700">
+  <fieldset class="mt-7 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-5">
+    <legend class="px-2 text-sm font-bold text-gray-700 dark:text-gray-200">{(language == "ENG") ? "Settings" : "Instellingen"}</legend>
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
         <input type="checkbox" id="power_rule" class="toggle" on:change={() => toggle_value('power_rule')} />
         {(language == "ENG") ? "Power Rule" : "Machtregel"}
       </label>
-      <label class="label text-slate-700">
+      <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
         <input type="checkbox" id="chain_rule" class="toggle" on:change={() => toggle_value('chain_rule')} />
         {(language == "ENG") ? "Chain Rule" : "Kettingregel"}
       </label>
-      <label class="label text-slate-700">
+      <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
         <input type="checkbox" id="product_rule" class="toggle" on:change={() => toggle_value('product_rule')} />
         {(language == "ENG") ? "Product Rule" : "Productregel"}
       </label>
-      <label class="label text-slate-700">
-        <div class="w-full max-w-xs">
-          <input type="range" min="0" max="10" value="{depth}" class="range" step="1" on:input={handle_depth_change}/>
-        </div>
+      <label class="col-span-2 flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-200 sm:col-span-1">
+        <input type="range" min="0" max="10" value="{depth}" class="min-w-0 flex-1 accent-blue-600" step="1" on:input={handle_depth_change}/>
         {(language == "ENG") ? "Depth" : "Diepte"} = {depth}
       </label>
-      <label class="label text-slate-700">
+      <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
         <input type="checkbox" class="toggle" id="use_ln" on:change={() => toggle_value('use_ln')} />
-        {(language == "ENG") ? "ln" : "ln"}
+        ln
       </label>
-      <label class="label text-slate-700">
+      <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
         <input type="checkbox" id="use_sqrt" class="toggle" on:change={() => toggle_value('use_sqrt')} />
         {(language == "ENG") ? "sqrt" : "wortel"}
       </label>
-      <label class="label text-slate-700">
+      <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
         <input type="checkbox" id="use_exponentials" class="toggle" on:change={() => toggle_value('use_exponentials')} />
         {(language == "ENG") ? "exponential" : "machtsverband"}
       </label>
-      <button class="w-full btn btn-soft btn-primary justify-right" on:click={() => toggle_value('show_derivative')}><p>{(language == "ENG") ? "show derivative" : "laat afgeleide zien"}</p></button>
+      <button class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 transition hover:border-blue-400 hover:text-blue-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-blue-400 dark:hover:text-blue-300" on:click={() => toggle_value('show_derivative')}>
+        {#if language == "ENG"}
+          {settings.show_derivative ? "Hide derivative" : "Show derivative"}
+        {:else}
+          {settings.show_derivative ? "Afgeleide verbergen" : "Afgeleide tonen"}
+        {/if}
+      </button>
     </div>
   </fieldset>
 
-  <button class="w-full btn btn-soft btn-primary justify-right" on:click={() => generate_new()}><p>{(language == "ENG") ? "Generate" : "Genereer"}</p></button>
+  <button class="mt-4 w-full rounded-xl bg-blue-600 px-5 py-2.5 font-bold text-white shadow-sm transition hover:bg-blue-700" on:click={() => generate_new()}>{(language == "ENG") ? "Generate new exercise" : "Genereer nieuwe opgave"}</button>
 
-  {@html folds}
-</div>
+  <div class="mt-5 overflow-hidden rounded-2xl text-gray-900 dark:text-gray-100">
+    {@html folds}
+  </div>
 
-<div class="w-full max-w-screen-xl mx-auto mt-20">
+<div class="mt-10 rounded-2xl border border-gray-200 bg-white p-5 text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 sm:p-6">
   {#if language == "ENG"}
-    <h2 class="mx-auto text-2xl font-bold my-2">Information</h2>
-    <li>This tool can't simplify functions, but you can! Every once in a while, you can try to simplify the function before taking the derivative. If all is well, you will get a (simplified) version of the derivative denoted here.</li>
-    <li>Click on the function to see the last rule that was applied (recursively).</li>
-    <li>[Square brackets] are used for the chain rule (specifically, the derivative of the inner part).</li>
-    <li>{`{`}Curly brackets{`}`} are used for the product rule (specifically, the derivatives of the functions).</li>
+    <h2 class="text-xl font-bold text-gray-950 dark:text-white">Information</h2>
+    <ul class="mt-3 list-disc space-y-2 pl-5 leading-7">
+      <li>This tool can't simplify functions, but you can. Try simplifying the function before taking its derivative, then compare your result.</li>
+      <li>Click the function to inspect the last rule applied, recursively.</li>
+      <li>Square brackets mark the derivative of the inner function in the chain rule.</li>
+      <li>Curly brackets mark function derivatives in the product rule.</li>
+    </ul>
   {/if}
   {#if language == "NED"}
-    <h2 class="mx-auto text-2xl font-bold my-2">Informatie</h2>
-    <li>Deze tool kan geen functies vereenvoudigen, maar jij wel! Het is leerzaam om te proberen de functie eerste te herleiden, om hem vervolgens te differentiëren. Als het goed is, kom je op een (vereenvoudigde) versie uit van de afgeleide die hier staat.</li>
-    <li>Klik op de functie om de laatst gebruikte regel te zien (recursief).</li>
-    <li>[Vierkante haakjes] worden gebruikt voor de kettingregel (voor de afgeleide van de binnenste functie).</li>
-    <li>{`{`}Accolades{`}`} worden gebruikt voor de productregel (voor de afgeleides van de functies).</li>
+    <h2 class="text-xl font-bold text-gray-950 dark:text-white">Informatie</h2>
+    <ul class="mt-3 list-disc space-y-2 pl-5 leading-7">
+      <li>Deze tool vereenvoudigt functies niet automatisch. Probeer de functie vóór het differentiëren te herleiden en vergelijk daarna je resultaat.</li>
+      <li>Klik op de functie om recursief de laatst toegepaste regel te bekijken.</li>
+      <li>Vierkante haken markeren bij de kettingregel de afgeleide van de binnenste functie.</li>
+      <li>Accolades markeren bij de productregel de afgeleiden van de functies.</li>
+    </ul>
   {/if}
 </div>
-
-<style>
-</style>
-
-
+</section>
